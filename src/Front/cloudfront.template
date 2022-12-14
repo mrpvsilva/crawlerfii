@@ -1,0 +1,171 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Creation of s3 bucket and cloudfront for front of the crawler.",
+    "Resources": {
+        "CrawlerBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "BucketName": "crawler-fii-static",
+                "AccessControl": "PublicRead",
+                "WebsiteConfiguration": {
+                    "IndexDocument": "index.html",
+                    "ErrorDocument": "error.html"
+                },
+                "VersioningConfiguration": {
+                    "Status": "Enabled"
+                },
+                "BucketEncryption": {
+                    "ServerSideEncryptionConfiguration": [
+                        {
+                            "ServerSideEncryptionByDefault": {
+                                "SSEAlgorithm": "AES256"
+                            }
+                        }
+                    ]
+                },
+                "PublicAccessBlockConfiguration": {
+                    "BlockPublicAcls": true,
+                    "BlockPublicPolicy": true,
+                    "IgnorePublicAcls": true,
+                    "RestrictPublicBuckets": false
+                }
+            }
+        },
+        "CrawlerBucketPolicy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+                "Bucket": {
+                    "Ref": "CrawlerBucket"
+                },
+                "PolicyDocument": {
+                    "Id": "CrawlerBucketPolicy",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ",
+                                            {
+                                                "Ref": "CrawlerCloudFrontAccessIdentity"
+                                            }
+                                        ]
+                                    ]
+                                }
+                            },
+                            "Action": [
+                                "s3:GetObject"
+                            ],
+                            "Resource": [
+                                {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            {
+                                                "Fn::GetAtt": [
+                                                    "CrawlerBucket",
+                                                    "Arn"
+                                                ]
+                                            },
+                                            "/*"
+                                        ]
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        "CrawlerCloudFrontAccessIdentity": {
+            "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
+            "Properties": {
+                "CloudFrontOriginAccessIdentityConfig": {
+                    "Comment": "Origin Access Identity for Crawler Distribution"
+                }
+            }
+        },
+        "CrawlerCloudFrontDistribution": {
+            "Type": "AWS::CloudFront::Distribution",
+            "DependsOn": "CrawlerBucket",
+            "Properties": {
+                "DistributionConfig": {
+                    "Aliases": [],
+                    "Comment": "Distribution para Crawler",
+                    "CustomErrorResponses": [
+                        {
+                            "ErrorCachingMinTTL": 10,
+                            "ErrorCode": 403,
+                            "ResponseCode": 200,
+                            "ResponsePagePath": "/index.html"
+                        },
+                        {
+                            "ErrorCode": "404",
+                            "ResponsePagePath": "/index.html",
+                            "ResponseCode": "200",
+                            "ErrorCachingMinTTL": "30"
+                        }
+                    ],
+                    "DefaultCacheBehavior": {
+                        "AllowedMethods": [
+                            "GET",
+                            "HEAD",
+                            "OPTIONS",
+                            "PUT",
+                            "POST",
+                            "PATCH",
+                            "DELETE"
+                        ],
+                        "CachedMethods": [
+                            "GET",
+                            "HEAD"
+                        ],
+                        "ForwardedValues": {
+                            "QueryString": "false",
+                            "Cookies": {
+                                "Forward": "none"
+                            }
+                        },
+                        "Compress": false,
+                        "SmoothStreaming": false,
+                        "TargetOriginId": "S3-CrawlerBucket",
+                        "ViewerProtocolPolicy": "redirect-to-https"
+                    },
+                    "DefaultRootObject": "index.html",
+                    "Origins": [
+                        {
+                            "DomainName": {
+                                "Fn::GetAtt": [
+                                    "CrawlerBucket",
+                                    "DomainName"
+                                ]
+                            },
+                            "Id": "S3-CrawlerBucket",
+                            "S3OriginConfig": {
+                                "OriginAccessIdentity": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "origin-access-identity/cloudfront/",
+                                            {
+                                                "Ref": "CrawlerCloudFrontAccessIdentity"
+                                            }
+                                        ]
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    "Enabled": true,
+                    "ViewerCertificate": {
+                        "CloudFrontDefaultCertificate": "true"
+                    }
+                },
+                "Tags": []
+            }
+        }
+    },
+    "Outputs": {}
+}

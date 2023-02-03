@@ -36,10 +36,11 @@ namespace WebApi.Controllers
                 "RBRR11",
                 "TRXF11",
                 "VISC11",
-                "XPML11"
+                "XPML11",
+                "MXRF11"
             };
 
-            return _fiiService.GetFiiAsync(query?.Fiis, cancellationToken);
+            return _fiiService.GetFiiAsync(query?.Fiis.OrderBy(x => x), cancellationToken);
         }
     }
 }

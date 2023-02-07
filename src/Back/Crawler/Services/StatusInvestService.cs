@@ -69,6 +69,7 @@ namespace Crawler.Services
                         Name = payment.GetProperty("code").ToString(),
                         Date = payment.GetProperty("paymentDividend").ToString(),
                         Value = payment.GetProperty("resultAbsoluteValue").ToString(),
+                        Dy = payment.GetProperty("dy").ToString()
                     });
                 }
 
@@ -79,7 +80,8 @@ namespace Crawler.Services
                        {
                            Name = a,
                            Date = left?.Date,
-                           Value = left?.Value
+                           Value = left?.Value,
+                           Dy = left?.Dy
                        }).ToList();
 
                 _cache.Set(CACHE_KEY, list);

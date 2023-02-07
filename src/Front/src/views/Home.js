@@ -25,6 +25,7 @@ function Home() {
                             <TableCell>Name</TableCell>
                             <TableCell>Data Pagamento</TableCell>
                             <TableCell>Rendimento</TableCell>
+                            <TableCell>DY</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -35,6 +36,7 @@ function Home() {
                                 </TableCell>
                                 <TableCell>{item.date}</TableCell>
                                 <TableCell>{item.value}</TableCell>
+                                <TableCell>{item.dy}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

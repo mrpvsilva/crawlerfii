@@ -32,6 +32,15 @@
               "Method": "ANY"
             }
           }
+        },
+        "Environment" : {
+           "Variables" : {
+            "Jwt__Audience": "https://crawlerfii.com/",
+            "Jwt__Issuer": "https://crawlerfii.com/",
+            "Jwt__Key": "C395C6D6-6387-4489-89B8-AB3DAFF6E693",
+            "user__email": "crawler@email.com",
+            "user__pass": "crawler@123"
+           }
         }
       }
     }

@@ -1,5 +1,6 @@
 using Crawler.IoC;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -50,6 +51,14 @@ public class Startup
                     ValidateIssuerSigningKey = true
                 };
             });
+
+        services.AddResponseCompression(options =>
+        {
+            options.EnableForHttps = true;
+            options.Providers.Add<BrotliCompressionProvider>();
+            options.Providers.Add<GzipCompressionProvider>();
+        });
+
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline
@@ -68,6 +77,8 @@ public class Startup
 
         app.UseAuthentication();
         app.UseAuthorization();
+
+        app.UseResponseCompression();
 
         app.UseEndpoints(endpoints =>
         {
